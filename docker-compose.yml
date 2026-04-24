@@ -2,7 +2,13 @@ services:
   db:
     image: adf5858/waymore-db:v2
     container_name: waymore-db
+    volumes:
+      - waymore-db-data:/var/lib/postgresql/data
     ports:
       - 5432:5432
     env_file:
       - .env
+
+volumes:
+  waymore-db-data:
+    external: true
