@@ -1,7 +1,7 @@
 ---
 title: "[feat]"
 labels: '✨feat'
-assigness: ''
+assignees: ''
 ---
 
 ### 🤔 목적

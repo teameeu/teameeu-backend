@@ -1,7 +1,7 @@
 ---
 title: "[bug]"
 labels: '🐛bug'
-assigness: ''
+assignees: ''
 ---
 
 ### 🤔 목적
