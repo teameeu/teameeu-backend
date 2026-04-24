@@ -1,4 +1,6 @@
 ---
+name: "bug issue"
+about: "버그 수정 전용 템플릿"
 title: "[bug]"
 labels: '🐛bug'
 assignees: ''

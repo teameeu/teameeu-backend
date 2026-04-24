@@ -1,4 +1,6 @@
 ---
+name: "feature issue"
+about: "기능 구현 전용 템플릿"
 title: "[feat]"
 labels: '✨feat'
 assignees: ''
