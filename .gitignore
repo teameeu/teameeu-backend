@@ -219,3 +219,7 @@ gradle-app.setting
 ### env ###
 .env
 application.properties
+
+
+### Agent ###
+agent/
