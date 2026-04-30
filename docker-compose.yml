@@ -1,14 +1,56 @@
 services:
-  db:
-    image: adf5858/waymore-db:v2
+  app:
+    build:
+      context: .
+    container_name: waymore-app
+    ports:
+      - ${APP_PORT}:${SERVER_PORT}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    build: ./db
     container_name: waymore-db
+    command: postgres -p ${POSTGRES_CONTAINER_PORT}
     volumes:
       - waymore-db-data:/var/lib/postgresql
     ports:
-      - 5432:5432
-    env_file:
-      - .env
+      - ${POSTGRES_PORT}:${POSTGRES_CONTAINER_PORT}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_CONTAINER_PORT: ${POSTGRES_CONTAINER_PORT}
+      TZ: ${TZ}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -p $${POSTGRES_CONTAINER_PORT}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: waymore-redis
+    ports:
+      - ${REDIS_PORT}:${REDIS_CONTAINER_PORT}
+    environment:
+      REDIS_CONTAINER_PORT: ${REDIS_CONTAINER_PORT}
+    volumes:
+      - waymore-redis-data:/data
+    command: redis-server --appendonly yes --port ${REDIS_CONTAINER_PORT}
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p $${REDIS_CONTAINER_PORT} ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
 
 volumes:
   waymore-db-data:
-    external: true
+  waymore-redis-data:
