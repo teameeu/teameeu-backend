@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: waymore
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: ${SERVER_PORT}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS}
+  refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS}
+
+auth:
+  cookie:
+    refresh-token:
+      name: ${REFRESH_TOKEN_COOKIE_NAME}
+      path: ${REFRESH_TOKEN_COOKIE_PATH}
+      secure: ${REFRESH_TOKEN_COOKIE_SECURE}
+      same-site: ${REFRESH_TOKEN_COOKIE_SAME_SITE}
