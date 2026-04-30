@@ -1,16 +1,12 @@
 package com.teameau.waymore.user.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Size;
-
+import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
 public record SignupRequest(
         @NotBlank(message = "이메일은 필수입니다.")
         @Email(message = "이메일 형식이 올바르지 않습니다.")
-        @Size(max = 255, message = "이메일은 50자를 넘을 수 없습니다.") // TODO: DB 컬럼 50자로 수정
+        @Size(max = 255, message = "이메일은 255자를 넘을 수 없습니다.")
         String email,
 
         @NotBlank(message = "비밀번호 입력은 필수입니다.")
@@ -21,7 +17,7 @@ public record SignupRequest(
         @Size(min = 8, max = 30)
         String passwordCheck,
 
-        @NotBlank(message = "생년월일을 입력해주세요.")
+        @NotNull(message = "생년월일을 입력해주세요.")
         @Past(message = "생년월일은 가입한 날짜 이전이어야 합니다.")
         LocalDate birthday,
 
@@ -34,5 +30,4 @@ public record SignupRequest(
         String career
 ) {
 }
-
 
