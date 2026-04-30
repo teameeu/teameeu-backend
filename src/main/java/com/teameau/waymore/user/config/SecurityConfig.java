@@ -18,8 +18,11 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers("/api/auth/join").permitAll() // 회원가입 시 별도 인증 없음
+                        .requestMatchers(
+                                "/api/auth/join",
+                                "/api/auth/login"
+
+                        ).permitAll()
                         .requestMatchers(
                                 "/swagger-ui",
                                 "/swagger-ui.html",

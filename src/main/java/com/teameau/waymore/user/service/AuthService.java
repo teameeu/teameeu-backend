@@ -3,9 +3,7 @@ package com.teameau.waymore.user.service;
 import com.teameau.waymore.common.exception.BusinessException;
 import com.teameau.waymore.common.exception.ErrorCode;
 import com.teameau.waymore.user.domain.User;
-import com.teameau.waymore.user.dto.SignupRequest;
-import com.teameau.waymore.user.dto.SignupResponse;
-import com.teameau.waymore.user.dto.SignupResult;
+import com.teameau.waymore.user.dto.*;
 import com.teameau.waymore.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +19,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
 
+    // 회원가입
     @Transactional
     public SignupResult signup(SignupRequest request) {
         // 이메일 중복 검사
@@ -59,5 +58,29 @@ public class AuthService {
         );
 
 
+    }
+
+
+    @Transactional
+    public LoginResult login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new BusinessException(ErrorCode.PASSWORD_NOT_MATCHED);
+        }
+
+        // 토큰 발급
+        String accessToken = jwtTokenProvider.createAccessToken(user);
+        String refreshToken = jwtTokenProvider.createAccessToken(user);
+
+        refreshTokenService.save(user.getId(), refreshToken, jwtTokenProvider.getRefreshTokenExpiration());
+
+        return new LoginResult(
+            LoginResponse.of(user, accessToken),
+            refreshToken,
+            jwtTokenProvider.getRefreshTokenExpiration()
+        );
     }
 }

@@ -1,8 +1,6 @@
 package com.teameau.waymore.user.controller;
 
-import com.teameau.waymore.user.dto.SignupRequest;
-import com.teameau.waymore.user.dto.SignupResponse;
-import com.teameau.waymore.user.dto.SignupResult;
+import com.teameau.waymore.user.dto.*;
 import com.teameau.waymore.user.service.AuthCookieProvider;
 import com.teameau.waymore.user.service.AuthService;
 import jakarta.validation.Valid;
@@ -38,4 +36,20 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .body(result.response());
     }
+
+    // 로그인
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResult result = authService.login(request);
+        ResponseCookie refeshTokenCookie = authCookieProvider.createRefreshTokenCookie(
+                result.refreshToken(),
+                result.refreshTokenMaxAge()
+        );
+
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE, refeshTokenCookie.toString())
+                .body(result.response());
+    }
+
 }
