@@ -1,8 +1,10 @@
 package com.teameau.waymore.user.domain;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,8 +12,8 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @Table(name = "\"USERS\"")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
-
     /*
     * 회원 PK
     * */
@@ -23,13 +25,13 @@ public class User {
     /*
     * 이메일
     * */
-    @Column(name = "email", nullable = false, unique = true, length = 50)
+    @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
 
     /*
     * 비밀번호
     * */
-    @Column(name = "password", nullable = false, length = 30)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
 
