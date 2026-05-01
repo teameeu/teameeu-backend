@@ -9,6 +9,13 @@ spring:
       hibernate:
         format_sql: true
 
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+  api-docs:
+    path: /v3/api-docs
+
 server:
   port: ${SERVER_PORT}
 
