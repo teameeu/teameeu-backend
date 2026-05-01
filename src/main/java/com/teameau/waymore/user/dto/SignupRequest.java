@@ -9,6 +9,10 @@ public record SignupRequest(
         @Size(max = 255, message = "이메일은 255자를 넘을 수 없습니다.")
         String email,
 
+        @NotBlank(message = "이름은 필수입니다.")
+        @Size(max = 50, message = "이름은 50자를 넘을 수 없습니다.")
+        String userName,
+
         @NotBlank(message = "비밀번호 입력은 필수입니다.")
         @Size(min = 8, max = 255, message = "비밀번호 입력은 영문 ∙ 숫자 포함 8자 이상 입력해야 합니다.")
         String password,

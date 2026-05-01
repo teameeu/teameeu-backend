@@ -28,6 +28,9 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
 
+    @Column(name = "user_name", nullable = false, length = 50)
+    private String userName;
+
     /*
     * 비밀번호
     * */
@@ -67,12 +70,14 @@ public class User {
     @Builder
     private User(
             String email,
+            String userName,
             String password,
             LocalDate birthday,
             String department,
             String career
     ) {
         this.email = email;
+        this.userName = userName;
         this.password = password;
         this.birthday = birthday;
         this.department = department;

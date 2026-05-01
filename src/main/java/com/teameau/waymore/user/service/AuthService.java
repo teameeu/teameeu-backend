@@ -37,6 +37,7 @@ public class AuthService {
 
         User user = User.builder()
                 .email(request.email())
+                .userName(request.userName())
                 .password(encodedPassword)
                 .birthday(request.birthday())
                 .department(request.department())
@@ -73,7 +74,7 @@ public class AuthService {
 
         // 토큰 발급
         String accessToken = jwtTokenProvider.createAccessToken(user);
-        String refreshToken = jwtTokenProvider.createAccessToken(user);
+        String refreshToken = jwtTokenProvider.createRefreshToken(user);
 
         refreshTokenService.save(user.getId(), refreshToken, jwtTokenProvider.getRefreshTokenExpiration());
 

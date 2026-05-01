@@ -7,6 +7,7 @@ import java.time.LocalDate;
 public record SignupResponse(
         Long userId,
         String email,
+        String userName,
         LocalDate birthday,
         String department,
         String career,
@@ -17,6 +18,7 @@ public record SignupResponse(
         return new SignupResponse(
                 user.getId(),
                 user.getEmail(),
+                user.getUserName(),
                 user.getBirthday(),
                 user.getDepartment(),
                 user.getCareer(),
