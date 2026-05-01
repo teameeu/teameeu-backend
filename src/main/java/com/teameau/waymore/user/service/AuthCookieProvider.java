@@ -36,4 +36,15 @@ public class AuthCookieProvider {
                 .build();
     }
 
+    // 로그아웃 시 쿠키 제거
+    public ResponseCookie createEmptyRefreshTokenCookie() {
+        return ResponseCookie.from(refreshTokenCookieName, "")
+                .httpOnly(true)
+                .secure(refreshTokenCookieSecure)
+                .sameSite(refreshTokenCookieSameSite)
+                .path(refreshTokenCookiePath)
+                .maxAge(0)
+                .build();
+    }
+
 }

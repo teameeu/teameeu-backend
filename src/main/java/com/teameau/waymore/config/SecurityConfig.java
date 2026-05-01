@@ -1,4 +1,4 @@
-package com.teameau.waymore.user.config;
+package com.teameau.waymore.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +20,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/join",
-                                "/api/auth/login"
+                                "/api/auth/login",
+                                "/api/auth/logout"
 
                         ).permitAll()
                         .requestMatchers(

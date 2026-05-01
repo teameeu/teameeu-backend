@@ -83,4 +83,9 @@ public class AuthService {
             jwtTokenProvider.getRefreshTokenExpiration()
         );
     }
+
+    @Transactional
+    public void logout(Long userId) {
+        refreshTokenService.delete(userId);
+    }
 }

@@ -52,4 +52,12 @@ public class AuthController {
                 .body(result.response());
     }
 
+    // 로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(Long userId) {
+        authService.logout(userId);
+        ResponseCookie emptyCookie = authCookieProvider.createEmptyRefreshTokenCookie();
+        return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, emptyCookie.toString()).build();
+    }
+
 }

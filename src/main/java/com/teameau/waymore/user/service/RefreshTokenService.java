@@ -21,4 +21,10 @@ public class RefreshTokenService {
 
         redisTemplate.opsForValue().set(key, refreshToken, exp);
     }
+
+    // 로그아웃 시, refresh 토큰 삭제
+    public void delete(Long userId) {
+        String key = REFRESH_TOKEN_KEY_PREFIX + userId;
+        redisTemplate.delete(key);
+    }
 }
