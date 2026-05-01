@@ -14,7 +14,8 @@ CREATE TYPE roadmap_item_status AS ENUM (
 );
 
 CREATE TABLE "USERS" (
-    "user_id" bigint NOT NULL,
+    "user_id" bigint GENERATED ALWAYS AS IDENTITY ,
+    "user_name" varchar(50) NOT NULL ,
     "email" varchar(255) NOT NULL,
     "password" varchar(255) NOT NULL,
     "birthday" date NOT NULL,
