@@ -60,4 +60,26 @@ public class JwtTokenProvider {
     public Duration getRefreshTokenExpiration() {
         return refreshTokenExpiration;
     }
+
+    // 토큰 유효성 검증
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // userId 추출
+    public Long getUserId(String token) {
+        return Long.parseLong(
+                Jwts.parser()
+                        .verifyWith(secretKey)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload()
+                        .getSubject()
+        );
+    }
 }
