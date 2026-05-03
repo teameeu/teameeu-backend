@@ -1,14 +1,19 @@
 package com.teameau.waymore.roadmap.domain;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 
 @Getter
 @Entity
 @Table(name = "\"ROADMAP_ITEM\"")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RoadmapItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,6 +37,7 @@ public class RoadmapItem {
     private LocalDate endedAt;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false)
     private RoadmapItemStatus status;
 
@@ -50,5 +56,14 @@ public class RoadmapItem {
         this.startedAt = startedAt;
         this.endedAt = endedAt;
         this.status = status;
+    }
+
+    public void update(String title, String description, LocalDate startedAt, LocalDate endedAt, RoadmapItemStatus status) {
+        if (title != null) this.title = title;
+        if (description != null) this.description = description;
+        if (startedAt != null) this.startedAt = startedAt;
+        if (endedAt != null) this.endedAt = endedAt;
+        if (status != null) this.status = status;
+
     }
 }

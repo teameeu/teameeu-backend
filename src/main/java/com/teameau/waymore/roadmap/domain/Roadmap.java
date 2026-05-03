@@ -2,14 +2,17 @@ package com.teameau.waymore.roadmap.domain;
 
 import com.teameau.waymore.user.domain.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Entity
 @Table(name = "\"ROADMAP\"")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Roadmap {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
