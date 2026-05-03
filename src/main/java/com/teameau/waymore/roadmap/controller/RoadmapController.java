@@ -7,7 +7,6 @@ import com.teameau.waymore.roadmap.dto.RoadmapItemResponse;
 import com.teameau.waymore.roadmap.dto.RoadmapRecommendationResponse;
 import com.teameau.waymore.roadmap.dto.RoadmapResponse;
 import com.teameau.waymore.roadmap.service.RoadmapService;
-import com.teameau.waymore.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,21 +23,23 @@ public class RoadmapController {
 
     @GetMapping("/")
     @Operation(summary = "로드맵 조회", security = { @SecurityRequirement(name = "bearerAuth")})
-    public RoadmapResponse getRoadmap(@AuthenticationPrincipal Long userId) {
-        return roadmapService.getRoadmap(userId);
+    public CommonResponseDto<RoadmapResponse> getRoadmap(@AuthenticationPrincipal Long userId) {
+        return CommonResponseDto.success(roadmapService.getRoadmap(userId));
     }
 
     @GetMapping("/{itemId}")
     @Operation(summary = "특정 로드맵 아이템 조회", security = { @SecurityRequirement(name = "bearerAuth")})
-    public RoadmapItemResponse getRoadmapItem(@PathVariable Long itemId) {
-        return roadmapService.getRoadmapItem(itemId);
+    public CommonResponseDto<RoadmapItemResponse> getRoadmapItem(@PathVariable Long itemId) {
+        return CommonResponseDto.success(roadmapService.getRoadmapItem(itemId));
     }
 
     // 로드맵 아이템 추기
     @PostMapping("/item")
     @Operation(summary = "로드맵 아이템 추가", security = { @SecurityRequirement(name = "bearerAuth")})
-    public void createRoadmapItem(@AuthenticationPrincipal Long userId, @RequestBody RoadmapItemRequest request) {
-        roadmapService.createRoadmapItem(userId, request);
+    public CommonResponseDto<RoadmapItemResponse> createRoadmapItem(@AuthenticationPrincipal Long userId, @RequestBody RoadmapItemRequest request) {
+        RoadmapItemResponse response = roadmapService.createRoadmapItem(userId, request);
+        return CommonResponseDto.success(response);
+
     }
 
     // 로드맵 아이템 수정
