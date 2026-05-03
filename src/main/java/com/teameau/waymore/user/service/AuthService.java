@@ -2,6 +2,8 @@ package com.teameau.waymore.user.service;
 
 import com.teameau.waymore.common.exception.BusinessException;
 import com.teameau.waymore.common.exception.ErrorCode;
+import com.teameau.waymore.roadmap.domain.Roadmap;
+import com.teameau.waymore.roadmap.repository.RoadmapRepository;
 import com.teameau.waymore.user.domain.User;
 import com.teameau.waymore.user.dto.*;
 import com.teameau.waymore.user.repository.UserRepository;
@@ -13,11 +15,11 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
+    private final RoadmapRepository roadmapRepository;
 
     // 회원가입
     @Transactional
@@ -46,11 +48,19 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
+        // 로드맵 상성
+        Roadmap roadmap = Roadmap.builder()
+                .user(savedUser)
+                .title(savedUser.getDepartment() + " " + savedUser.getCareer() + " 로드맵")
+                .build();
+
+        roadmapRepository.save(roadmap);
+
         // 토큰 발급
         String accessToken = jwtTokenProvider.createAccessToken(savedUser);
         String refreshToken = jwtTokenProvider.createRefreshToken(savedUser);
 
-        refreshTokenService.save(savedUser.getId(), refreshToken, jwtTokenProvider.getRefreshTokenExpiration());
+        refreshTokenService.save(savedUser.getUserId(), refreshToken, jwtTokenProvider.getRefreshTokenExpiration());
 
         return new SignupResult(
                 SignupResponse.of(savedUser, accessToken),
@@ -76,7 +86,7 @@ public class AuthService {
         String accessToken = jwtTokenProvider.createAccessToken(user);
         String refreshToken = jwtTokenProvider.createRefreshToken(user);
 
-        refreshTokenService.save(user.getId(), refreshToken, jwtTokenProvider.getRefreshTokenExpiration());
+        refreshTokenService.save(user.getUserId(), refreshToken, jwtTokenProvider.getRefreshTokenExpiration());
 
         return new LoginResult(
             LoginResponse.of(user, accessToken),
