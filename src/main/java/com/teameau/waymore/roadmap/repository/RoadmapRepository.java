@@ -1,16 +1,13 @@
 package com.teameau.waymore.roadmap.repository;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import com.teameau.waymore.roadmap.domain.Roadmap;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface RoadmapRepository {
+import java.util.List;
+import java.util.Optional;
 
-
-
-
-
+@Repository
+public interface RoadmapRepository extends JpaRepository<Roadmap, Long> {
+    Optional<Roadmap> findByUser_UserId(Long userId);
 }
