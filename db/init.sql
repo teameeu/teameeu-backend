@@ -28,7 +28,7 @@ CREATE TABLE "USERS" (
 
 
 CREATE TABLE "GRADE" (
-    "grade_id" bigint NOT NULL,
+    "grade_id" bigint GENERATED ALWAYS AS IDENTITY,
     "user_id" bigint NOT NULL,
     "score" int NOT NULL,
     "grade" varchar(10) NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE "GRADE" (
 
 
 CREATE TABLE "CAREER_RESULT" (
-    "result_id" bigint NOT NULL,
+    "result_id" bigint GENERATED ALWAYS AS IDENTITY,
     "user_id" bigint NOT NULL,
     "result_url" text NOT NULL,
     "created_at" timestamp NOT NULL DEFAULT now(),
@@ -49,7 +49,7 @@ CREATE TABLE "CAREER_RESULT" (
 );
 
 CREATE TABLE "ROADMAP" (
-    "roadmap_id" bigint NOT NULL,
+    "roadmap_id" bigint GENERATED ALWAYS AS IDENTITY,
     "user_id" bigint NOT NULL,
     "title" varchar(50) NOT NULL,
     "created_at" timestamp NOT NULL DEFAULT now(),
@@ -59,7 +59,7 @@ CREATE TABLE "ROADMAP" (
 );
 
 CREATE TABLE "ROADMAP_ITEM" (
-    "roadmap_item_id" bigint NOT NULL,
+    "roadmap_item_id" bigint GENERATED ALWAYS AS IDENTITY,
     "roadmap_id" bigint NOT NULL,
     "title" varchar(30) NOT NULL,
     "description" text NULL,
@@ -73,7 +73,7 @@ CREATE TABLE "ROADMAP_ITEM" (
 
 
 CREATE TABLE "CHAT_SESSION" (
-    "session_id" bigint NOT NULL,
+    "session_id" bigint GENERATED ALWAYS AS IDENTITY,
     "user_id" bigint NOT NULL,
     "title" varchar(50) NULL,
     "created_at" timestamp NOT NULL DEFAULT now(),
@@ -85,7 +85,7 @@ CREATE TABLE "CHAT_SESSION" (
 
 
 CREATE TABLE "CHAT_MESSAGE" (
-    "message_id" bigint NOT NULL,
+    "message_id" bigint GENERATED ALWAYS AS IDENTITY,
     "session_id" bigint NOT NULL,
     "role" chat_role NOT NULL,
     "content" text NOT NULL,

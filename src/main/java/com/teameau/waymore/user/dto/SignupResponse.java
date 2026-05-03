@@ -16,7 +16,7 @@ public record SignupResponse(
 ) {
     public static SignupResponse of(User user, String accessToken) {
         return new SignupResponse(
-                user.getId(),
+                user.getUserId(),
                 user.getEmail(),
                 user.getUserName(),
                 user.getBirthday(),

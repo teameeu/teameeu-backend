@@ -10,7 +10,7 @@ public record LoginResponse(
 ) {
     public static LoginResponse of(User user, String accessToken) {
         return new LoginResponse(
-                user.getId(),
+                user.getUserId(),
                 user.getEmail(),
                 accessToken
         );

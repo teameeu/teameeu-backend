@@ -10,6 +10,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
+    static {
+        org.springdoc.core.utils.SpringDocUtils.getConfig().addAnnotationsToIgnore(
+                org.springframework.security.core.annotation.AuthenticationPrincipal.class
+        );
+    }
+
+
     @Bean
     public OpenAPI openAPI() {
         String securitySchemeName = "bearerAuth";
