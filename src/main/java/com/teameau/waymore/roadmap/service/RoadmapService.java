@@ -16,7 +16,6 @@ import com.teameau.waymore.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -62,7 +61,7 @@ public class RoadmapService {
      * @param request 사용자 입력값 dto
      */
     @Transactional
-    public void createRoadmapItem(Long userId, RoadmapItemRequest request) {
+    public RoadmapItemResponse createRoadmapItem(Long userId, RoadmapItemRequest request) {
         Roadmap roadmap = roadmapRepository.findByUser_UserId(userId).orElseThrow(() -> new BusinessException(ErrorCode.INVALID_REQUEST));
 
         RoadmapItem item = RoadmapItem.builder()
@@ -74,6 +73,7 @@ public class RoadmapService {
                 .status(request.getStatus() != null ? request.getStatus() : RoadmapItemStatus.TODO)
                 .build();
         roadmapItemRepository.save(item);
+        return RoadmapItemResponse.from(item);
     }
 
     /**
