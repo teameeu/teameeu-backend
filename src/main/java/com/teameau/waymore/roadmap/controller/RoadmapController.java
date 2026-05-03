@@ -7,7 +7,6 @@ import com.teameau.waymore.roadmap.dto.RoadmapItemResponse;
 import com.teameau.waymore.roadmap.dto.RoadmapRecommendationResponse;
 import com.teameau.waymore.roadmap.dto.RoadmapResponse;
 import com.teameau.waymore.roadmap.service.RoadmapService;
-import com.teameau.waymore.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,9 +36,9 @@ public class RoadmapController {
     // 로드맵 아이템 추기
     @PostMapping("/item")
     @Operation(summary = "로드맵 아이템 추가", security = { @SecurityRequirement(name = "bearerAuth")})
-    public CommonResponseDto<Void> createRoadmapItem(@AuthenticationPrincipal Long userId, @RequestBody RoadmapItemRequest request) {
-        roadmapService.createRoadmapItem(userId, request);
-        return CommonResponseDto.success();
+    public CommonResponseDto<RoadmapItemResponse> createRoadmapItem(@AuthenticationPrincipal Long userId, @RequestBody RoadmapItemRequest request) {
+        RoadmapItemResponse response = roadmapService.createRoadmapItem(userId, request);
+        return CommonResponseDto.success(response);
 
     }
 
