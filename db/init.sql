@@ -30,6 +30,7 @@ CREATE TABLE "USERS" (
 CREATE TABLE "GRADE" (
     "grade_id" bigint GENERATED ALWAYS AS IDENTITY,
     "user_id" bigint NOT NULL,
+    "subject" varchar(10) NOT NULL ,
     "score" int NOT NULL,
     "grade" varchar(10) NOT NULL,
     CONSTRAINT "PK_GRADE" PRIMARY KEY ("grade_id"),
