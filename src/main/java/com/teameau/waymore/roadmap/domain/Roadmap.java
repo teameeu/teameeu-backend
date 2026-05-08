@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Entity
@@ -34,6 +35,10 @@ public class Roadmap {
         this.user = user;
         this.title = title;
     }
+
+    @OneToMany(mappedBy = "roadmap")
+    private List<RoadmapItem> roadmapItemList;
+
 
     @PrePersist
     protected void onCreate() {

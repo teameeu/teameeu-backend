@@ -67,6 +67,17 @@ public class User {
     @Column(name = "role", nullable = false, length = 20)
      */
 
+    // TODO: 관계 등록
+
+    // GRADE
+
+    // CAREER_RESULT
+
+    // ROADMAP
+
+    // CHAT_SESSION
+
+
     @Builder
     private User(
             String email,
