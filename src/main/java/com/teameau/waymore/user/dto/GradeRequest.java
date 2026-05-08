@@ -16,7 +16,7 @@ public record GradeRequest(
         Integer score,
 
         @NotBlank(message = "등급 입력은 필수입니다.")
-        @Size(max = 1, message = "등급은 1자를 넘을 수 없습니다.")
+        @Size(max = 10, message = "등급은 10자를 넘을 수 없습니다.")
         String grade
 
         ) {
