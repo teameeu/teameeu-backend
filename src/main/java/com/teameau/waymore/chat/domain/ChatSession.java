@@ -4,12 +4,15 @@ import com.teameau.waymore.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Entity
 @Table(name ="\"CHAT_SESSION\"" )
+@NoArgsConstructor()
 public class ChatSession {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
