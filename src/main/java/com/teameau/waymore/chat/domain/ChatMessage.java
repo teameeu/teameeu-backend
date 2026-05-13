@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "\"CHAT_SESSION\"" )
+@Table(name = "\"CHAT_MESSAGE\"" )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ChatMessage {
     @Id
@@ -35,7 +35,7 @@ public class ChatMessage {
     @Builder
     private ChatMessage(
             ChatSession chatSession,
-            ChatMessageRole chatMessageRole,
+            ChatMessageRole role,
             String content
     ) {
         this.chatSession = chatSession;
