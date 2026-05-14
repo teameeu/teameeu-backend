@@ -218,6 +218,8 @@ gradle-app.setting
 
 ### env ###
 .env
+.env.db
+.env.was
 application.properties
 
 
