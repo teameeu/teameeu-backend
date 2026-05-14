@@ -27,6 +27,7 @@ dependencies {
 	// Persistence
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	testImplementation 'io.projectreactor:reactor-test'
 	runtimeOnly 'org.postgresql:postgresql'
 
