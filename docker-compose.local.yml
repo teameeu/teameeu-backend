@@ -1,7 +1,7 @@
 services:
   app:
     build:
-      context: ..
+      context: .
     container_name: waymore-app
     ports:
       - ${APP_PORT}:${SERVER_PORT}
@@ -14,11 +14,11 @@ services:
         condition: service_healthy
 
   postgres:
-    build: ../db
+    build: ./db
     container_name: waymore-db
     command: postgres -p ${POSTGRES_CONTAINER_PORT}
     volumes:
-      - waymore-db-data:/var/lib/postgresql
+      - waymore-db-data:/var/lib/postgresql/data
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_CONTAINER_PORT}
     environment:
