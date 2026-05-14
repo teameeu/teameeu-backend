@@ -1,4 +1,11 @@
 .git
+.gitignore
+.github
+docker-compose.local.yml
+src/test
+**/src/test
+.vscode
+deploy/
 .gradle
 build
 .idea
@@ -6,3 +13,5 @@ build
 agent
 README.md
 *.log
+.env
+.env.*
