@@ -60,98 +60,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Determine active slot from ALB listener
-        id: active
-        run: |
-          ACTIVE_TG=$(aws elbv2 describe-listeners \
-            --listener-arns "${{ secrets.ALB_LISTENER_ARN }}" \
-            --query "Listeners[0].DefaultActions[0].ForwardConfig.TargetGroups[?Weight==\`100\`][0].TargetGroupArn || Listeners[0].DefaultActions[0].ForwardConfig.TargetGroups[0].TargetGroupArn || Listeners[0].DefaultActions[0].TargetGroupArn" \
-            --output text)
-
-          if [ -z "$ACTIVE_TG" ] || [ "$ACTIVE_TG" = "None" ]; then
-            echo "no active target group found on listener default action"
-            exit 1
-          fi
-
-          if [ "$ACTIVE_TG" = "${{ secrets.BLUE_TARGET_GROUP_ARN }}" ]; then
-            ACTIVE_SLOT=blue
-          elif [ "$ACTIVE_TG" = "${{ secrets.GREEN_TARGET_GROUP_ARN }}" ]; then
-            ACTIVE_SLOT=green
-          else
-            echo "unknown active target group: $ACTIVE_TG"
-            exit 1
-          fi
-
-          echo "active=${ACTIVE_SLOT}" >> "$GITHUB_OUTPUT"
-
-      - name: Parse active slot
-        id: slot
-        run: |
-          ACTIVE_SLOT="${{ steps.active.outputs.active }}"
-          if [ "$ACTIVE_SLOT" = "blue" ]; then
-            TARGET_SLOT=green
-          else
-            TARGET_SLOT=blue
-          fi
-          echo "active=${ACTIVE_SLOT}" >> "$GITHUB_OUTPUT"
-          echo "target=${TARGET_SLOT}" >> "$GITHUB_OUTPUT"
-
-      - name: Prepare SSH keys for green via bastion
-        if: steps.slot.outputs.target == 'green'
-        run: |
-          install -m 700 -d ~/.ssh
-          echo "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/bastion_key
-          echo "${{ secrets.APP_GREEN_SSH_KEY }}" > ~/.ssh/app_key
-          chmod 600 ~/.ssh/bastion_key ~/.ssh/app_key
-
-      - name: Deploy to target app VM (green)
-        if: steps.slot.outputs.target == 'green'
-        env:
-          HOST: ${{ secrets.APP_GREEN_HOST }}
-          USERNAME: ${{ secrets.APP_GREEN_USER }}
-          BASTION_HOST: ${{ secrets.BASTION_HOST }}
-          BASTION_USER: ${{ secrets.BASTION_USER }}
-          IMAGE: ${{ needs.build_and_push.outputs.image }}
-        run: |
-          ssh \
-            -i ~/.ssh/app_key \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-            -o ProxyCommand="ssh -i ~/.ssh/bastion_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ${BASTION_USER}@${BASTION_HOST}" \
-            "${USERNAME}@${HOST}" "IMAGE='${IMAGE}' bash -s" <<'EOF'
-          set -euo pipefail
-          cd /opt/waymore/was
-          sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${IMAGE}|" .env.was
-          docker compose --env-file .env.was -f docker-compose.prod-was.yml pull
-          docker compose --env-file .env.was -f docker-compose.prod-was.yml up -d
-          for i in 1 2 3 4 5 6 7 8 9 10; do
-            if wget -qO- http://localhost:8080/actuator/health | grep -q UP; then
-              echo "healthcheck passed"
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "healthcheck failed"
-          exit 1
-          EOF
-
       - name: Prepare SSH keys for blue via bastion
-        if: steps.slot.outputs.target == 'blue'
         run: |
           install -m 700 -d ~/.ssh
-          echo "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/bastion_key
-          echo "${{ secrets.APP_BLUE_SSH_KEY }}" > ~/.ssh/app_key
+          echo "${{ secrets.BASTION_SSH_KEY }}" | tr -d '\r' > ~/.ssh/bastion_key
+          echo "${{ secrets.APP_BLUE_SSH_KEY }}" | tr -d '\r' > ~/.ssh/app_key
           chmod 600 ~/.ssh/bastion_key ~/.ssh/app_key
 
-      - name: Deploy to target app VM (blue)
-        if: steps.slot.outputs.target == 'blue'
+      - name: Deploy to blue app VM
         env:
           HOST: ${{ secrets.APP_BLUE_HOST }}
           USERNAME: ${{ secrets.APP_BLUE_USER }}
@@ -166,7 +82,7 @@ jobs:
             -o ProxyCommand="ssh -i ~/.ssh/bastion_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ${BASTION_USER}@${BASTION_HOST}" \
             "${USERNAME}@${HOST}" "IMAGE='${IMAGE}' bash -s" <<'EOF'
           set -euo pipefail
-          cd /opt/waymore/was
+          cd /opt/teameeu-bakcend
           sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${IMAGE}|" .env.was
           docker compose --env-file .env.was -f docker-compose.prod-was.yml pull
           docker compose --env-file .env.was -f docker-compose.prod-was.yml up -d
@@ -181,21 +97,6 @@ jobs:
           exit 1
           EOF
 
-      - name: Switch ALB listener target group
-        run: |
-          TARGET_SLOT="${{ steps.slot.outputs.target }}"
-          if [ "$TARGET_SLOT" = "green" ]; then
-            TARGET_TG="${{ secrets.GREEN_TARGET_GROUP_ARN }}"
-          else
-            TARGET_TG="${{ secrets.BLUE_TARGET_GROUP_ARN }}"
-          fi
-
-          aws elbv2 modify-listener \
-            --listener-arn "${{ secrets.ALB_LISTENER_ARN }}" \
-            --default-actions Type=forward,TargetGroupArn="${TARGET_TG}"
-
       - name: Done
         run: |
-          echo "active slot: ${{ steps.slot.outputs.active }}"
-          echo "target slot: ${{ steps.slot.outputs.target }}"
           echo "deployed image: ${{ needs.build_and_push.outputs.image }}"
