@@ -73,17 +73,18 @@ jobs:
           USERNAME: ${{ secrets.APP_BLUE_USER }}
           BASTION_HOST: ${{ secrets.BASTION_HOST }}
           BASTION_USER: ${{ secrets.BASTION_USER }}
-          IMAGE: ${{ needs.build_and_push.outputs.image }}
         run: |
+          [ -n "${{ needs.build_and_push.outputs.image }}" ] || { echo "image output empty"; exit 1; }
+          echo "Deploy image: ${{ needs.build_and_push.outputs.image }}"
           ssh \
             -i ~/.ssh/app_key \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
             -o ProxyCommand="ssh -i ~/.ssh/bastion_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ${BASTION_USER}@${BASTION_HOST}" \
-            "${USERNAME}@${HOST}" "IMAGE='${IMAGE}' bash -s" <<'EOF'
+            "${USERNAME}@${HOST}" "bash -s" <<'EOF'
           set -euo pipefail
           cd /opt/teameeu-backend/deploy/app
-          sudo sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${IMAGE}|" .env.was
+          sudo sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${{ needs.build_and_push.outputs.image }}|" .env.was
           sudo docker-compose --env-file .env.was -f docker-compose.prod.yml pull
           sudo docker-compose --env-file .env.was -f docker-compose.prod.yml up -d
           for i in 1 2 3 4 5 6 7 8 9 10; do
