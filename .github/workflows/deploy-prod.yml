@@ -103,21 +103,29 @@ jobs:
           echo "active=${ACTIVE_SLOT}" >> "$GITHUB_OUTPUT"
           echo "target=${TARGET_SLOT}" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare SSH key for green
+      - name: Prepare SSH keys for green via bastion
         if: steps.slot.outputs.target == 'green'
         run: |
           install -m 700 -d ~/.ssh
-          echo "${{ secrets.APP_GREEN_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/bastion_key
+          echo "${{ secrets.APP_GREEN_SSH_KEY }}" > ~/.ssh/app_key
+          chmod 600 ~/.ssh/bastion_key ~/.ssh/app_key
 
       - name: Deploy to target app VM (green)
         if: steps.slot.outputs.target == 'green'
         env:
           HOST: ${{ secrets.APP_GREEN_HOST }}
           USERNAME: ${{ secrets.APP_GREEN_USER }}
+          BASTION_HOST: ${{ secrets.BASTION_HOST }}
+          BASTION_USER: ${{ secrets.BASTION_USER }}
           IMAGE: ${{ needs.build_and_push.outputs.image }}
         run: |
-          ssh -o StrictHostKeyChecking=no "${USERNAME}@${HOST}" "IMAGE='${IMAGE}' bash -s" <<'EOF'
+          ssh \
+            -i ~/.ssh/app_key \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o ProxyCommand="ssh -i ~/.ssh/bastion_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ${BASTION_USER}@${BASTION_HOST}" \
+            "${USERNAME}@${HOST}" "IMAGE='${IMAGE}' bash -s" <<'EOF'
           set -euo pipefail
           cd /opt/waymore/was
           sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${IMAGE}|" .env.was
@@ -134,21 +142,29 @@ jobs:
           exit 1
           EOF
 
-      - name: Prepare SSH key for blue
+      - name: Prepare SSH keys for blue via bastion
         if: steps.slot.outputs.target == 'blue'
         run: |
           install -m 700 -d ~/.ssh
-          echo "${{ secrets.APP_BLUE_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/bastion_key
+          echo "${{ secrets.APP_BLUE_SSH_KEY }}" > ~/.ssh/app_key
+          chmod 600 ~/.ssh/bastion_key ~/.ssh/app_key
 
       - name: Deploy to target app VM (blue)
         if: steps.slot.outputs.target == 'blue'
         env:
           HOST: ${{ secrets.APP_BLUE_HOST }}
           USERNAME: ${{ secrets.APP_BLUE_USER }}
+          BASTION_HOST: ${{ secrets.BASTION_HOST }}
+          BASTION_USER: ${{ secrets.BASTION_USER }}
           IMAGE: ${{ needs.build_and_push.outputs.image }}
         run: |
-          ssh -o StrictHostKeyChecking=no "${USERNAME}@${HOST}" "IMAGE='${IMAGE}' bash -s" <<'EOF'
+          ssh \
+            -i ~/.ssh/app_key \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o ProxyCommand="ssh -i ~/.ssh/bastion_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ${BASTION_USER}@${BASTION_HOST}" \
+            "${USERNAME}@${HOST}" "IMAGE='${IMAGE}' bash -s" <<'EOF'
           set -euo pipefail
           cd /opt/waymore/was
           sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${IMAGE}|" .env.was
