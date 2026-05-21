@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, dev]
   pull_request:
-    branches: [ main, dev ]
+    branches: [main, dev]
     types:
       - closed
 
@@ -12,10 +12,16 @@ concurrency:
   group: bluegreen-was-main
   cancel-in-progress: true
 
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
 jobs:
-  deploy:
+  build_and_push:
     if: github.event_name == 'push' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+      short_sha: ${{ steps.meta.outputs.short_sha }}
 
     steps:
       - name: Checkout
@@ -48,6 +54,12 @@ jobs:
             ${{ steps.meta.outputs.image }}
             ${{ secrets.DOCKERHUB_USERNAME }}/waymore-was:latest
 
+  deploy:
+    needs: build_and_push
+    if: needs.build_and_push.result == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -78,9 +90,6 @@ jobs:
         id: slot
         run: |
           ACTIVE_SLOT="${{ steps.active.outputs.active }}"
-          if [ -z "$ACTIVE_SLOT" ]; then
-            ACTIVE_SLOT=blue
-          fi
           if [ "$ACTIVE_SLOT" = "blue" ]; then
             TARGET_SLOT=green
           else
@@ -89,51 +98,67 @@ jobs:
           echo "active=${ACTIVE_SLOT}" >> "$GITHUB_OUTPUT"
           echo "target=${TARGET_SLOT}" >> "$GITHUB_OUTPUT"
 
+      - name: Prepare SSH key for green
+        if: steps.slot.outputs.target == 'green'
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.APP_GREEN_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
       - name: Deploy to target app VM (green)
         if: steps.slot.outputs.target == 'green'
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.APP_GREEN_HOST }}
-          username: ${{ secrets.APP_GREEN_USER }}
-          key: ${{ secrets.APP_GREEN_SSH_KEY }}
-          script_stop: true
-          script: |
-            cd /opt/waymore/was
-            sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${{ steps.meta.outputs.image }}|" .env.was
-            docker compose --env-file .env.was -f docker-compose.prod-was.yml pull
-            docker compose --env-file .env.was -f docker-compose.prod-was.yml up -d
-            for i in 1 2 3 4 5 6 7 8 9 10; do
-              if wget -qO- http://localhost:8080/actuator/health | grep -q UP; then
-                echo "healthcheck passed"
-                exit 0
-              fi
-              sleep 5
-            done
-            echo "healthcheck failed"
-            exit 1
+        env:
+          HOST: ${{ secrets.APP_GREEN_HOST }}
+          USERNAME: ${{ secrets.APP_GREEN_USER }}
+          IMAGE: ${{ needs.build_and_push.outputs.image }}
+        run: |
+          ssh -o StrictHostKeyChecking=no "${USERNAME}@${HOST}" "IMAGE='${IMAGE}' bash -s" <<'EOF'
+          set -euo pipefail
+          cd /opt/waymore/was
+          sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${IMAGE}|" .env.was
+          docker compose --env-file .env.was -f docker-compose.prod-was.yml pull
+          docker compose --env-file .env.was -f docker-compose.prod-was.yml up -d
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if wget -qO- http://localhost:8080/actuator/health | grep -q UP; then
+              echo "healthcheck passed"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "healthcheck failed"
+          exit 1
+          EOF
+
+      - name: Prepare SSH key for blue
+        if: steps.slot.outputs.target == 'blue'
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.APP_BLUE_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
       - name: Deploy to target app VM (blue)
         if: steps.slot.outputs.target == 'blue'
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.APP_BLUE_HOST }}
-          username: ${{ secrets.APP_BLUE_USER }}
-          key: ${{ secrets.APP_BLUE_SSH_KEY }}
-          script_stop: true
-          script: |
-            cd /opt/waymore/was
-            sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${{ steps.meta.outputs.image }}|" .env.was
-            docker compose --env-file .env.was -f docker-compose.prod-was.yml pull
-            docker compose --env-file .env.was -f docker-compose.prod-was.yml up -d
-            for i in 1 2 3 4 5 6 7 8 9 10; do
-              if wget -qO- http://localhost:8080/actuator/health | grep -q UP; then
-                echo "healthcheck passed"
-                exit 0
-              fi
-              sleep 5
-            done
-            echo "healthcheck failed"
-            exit 1
+        env:
+          HOST: ${{ secrets.APP_BLUE_HOST }}
+          USERNAME: ${{ secrets.APP_BLUE_USER }}
+          IMAGE: ${{ needs.build_and_push.outputs.image }}
+        run: |
+          ssh -o StrictHostKeyChecking=no "${USERNAME}@${HOST}" "IMAGE='${IMAGE}' bash -s" <<'EOF'
+          set -euo pipefail
+          cd /opt/waymore/was
+          sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${IMAGE}|" .env.was
+          docker compose --env-file .env.was -f docker-compose.prod-was.yml pull
+          docker compose --env-file .env.was -f docker-compose.prod-was.yml up -d
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if wget -qO- http://localhost:8080/actuator/health | grep -q UP; then
+              echo "healthcheck passed"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "healthcheck failed"
+          exit 1
+          EOF
 
       - name: Switch ALB listener target group
         run: |
@@ -152,4 +177,4 @@ jobs:
         run: |
           echo "active slot: ${{ steps.slot.outputs.active }}"
           echo "target slot: ${{ steps.slot.outputs.target }}"
-          echo "deployed image: ${{ steps.meta.outputs.image }}"
+          echo "deployed image: ${{ needs.build_and_push.outputs.image }}"
