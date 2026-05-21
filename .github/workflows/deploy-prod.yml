@@ -72,8 +72,13 @@ jobs:
         run: |
           ACTIVE_TG=$(aws elbv2 describe-listeners \
             --listener-arns "${{ secrets.ALB_LISTENER_ARN }}" \
-            --query "Listeners[0].DefaultActions[0].TargetGroupArn" \
+            --query "Listeners[0].DefaultActions[0].ForwardConfig.TargetGroups[?Weight==\`100\`][0].TargetGroupArn || Listeners[0].DefaultActions[0].ForwardConfig.TargetGroups[0].TargetGroupArn || Listeners[0].DefaultActions[0].TargetGroupArn" \
             --output text)
+
+          if [ -z "$ACTIVE_TG" ] || [ "$ACTIVE_TG" = "None" ]; then
+            echo "no active target group found on listener default action"
+            exit 1
+          fi
 
           if [ "$ACTIVE_TG" = "${{ secrets.BLUE_TARGET_GROUP_ARN }}" ]; then
             ACTIVE_SLOT=blue
