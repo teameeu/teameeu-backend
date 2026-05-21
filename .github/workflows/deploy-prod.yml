@@ -82,7 +82,7 @@ jobs:
             -o ProxyCommand="ssh -i ~/.ssh/bastion_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ${BASTION_USER}@${BASTION_HOST}" \
             "${USERNAME}@${HOST}" "IMAGE='${IMAGE}' bash -s" <<'EOF'
           set -euo pipefail
-          cd /opt/teameeu-bakcend
+          cd /opt/teameeu-backend
           sed -i.bak "s|^WAS_IMAGE=.*|WAS_IMAGE=${IMAGE}|" .env.was
           docker compose --env-file .env.was -f docker-compose.prod-was.yml pull
           docker compose --env-file .env.was -f docker-compose.prod-was.yml up -d
