@@ -96,6 +96,34 @@ public class AuthService {
     }
 
     @Transactional
+    public LoginResult refresh(String refreshToken) {
+        if (!jwtTokenProvider.validateToken(refreshToken) || !jwtTokenProvider.isRefreshToken(refreshToken)) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+
+        Long userId = jwtTokenProvider.getUserId(refreshToken);
+        String savedRefreshToken = refreshTokenService.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_REQUEST));
+
+        if (!savedRefreshToken.equals(refreshToken)) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(user);
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(user);
+        refreshTokenService.save(userId, newRefreshToken, jwtTokenProvider.getRefreshTokenExpiration());
+
+        return new LoginResult(
+                LoginResponse.of(user, newAccessToken),
+                newRefreshToken,
+                jwtTokenProvider.getRefreshTokenExpiration()
+        );
+    }
+
+    @Transactional
     public void logout(Long userId) {
         refreshTokenService.delete(userId);
     }

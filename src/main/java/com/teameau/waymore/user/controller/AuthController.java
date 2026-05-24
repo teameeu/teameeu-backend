@@ -7,7 +7,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import com.teameau.waymore.common.exception.BusinessException;
+import com.teameau.waymore.common.exception.ErrorCode;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -57,6 +61,22 @@ public class AuthController {
                 .body(result.response());
     }
 
+    @PostMapping("/refresh")
+    @Operation(summary = "토큰 재발급")
+    public ResponseEntity<LoginResponse> refresh(HttpServletRequest request) {
+        String refreshToken = extractRefreshToken(request);
+        LoginResult result = authService.refresh(refreshToken);
+        ResponseCookie refreshTokenCookie = authCookieProvider.createRefreshTokenCookie(
+                result.refreshToken(),
+                result.refreshTokenMaxAge()
+        );
+
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(result.response());
+    }
+
     // 로그아웃
     @PostMapping("/logout")
     @Operation(
@@ -68,6 +88,21 @@ public class AuthController {
         authService.logout(userId);
         ResponseCookie emptyCookie = authCookieProvider.createEmptyRefreshTokenCookie();
         return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, emptyCookie.toString()).build();
+    }
+
+    private String extractRefreshToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+
+        String refreshTokenCookieName = authCookieProvider.getRefreshTokenCookieName();
+        for (Cookie cookie : cookies) {
+            if (refreshTokenCookieName.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        throw new BusinessException(ErrorCode.INVALID_REQUEST);
     }
 
 }

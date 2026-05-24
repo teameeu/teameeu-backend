@@ -36,6 +36,10 @@ public class AuthCookieProvider {
                 .build();
     }
 
+    public String getRefreshTokenCookieName() {
+        return refreshTokenCookieName;
+    }
+
     // 로그아웃 시 쿠키 제거
     public ResponseCookie createEmptyRefreshTokenCookie() {
         return ResponseCookie.from(refreshTokenCookieName, "")

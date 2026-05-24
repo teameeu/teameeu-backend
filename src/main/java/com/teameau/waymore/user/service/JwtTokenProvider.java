@@ -82,4 +82,18 @@ public class JwtTokenProvider {
                         .getSubject()
         );
     }
+
+    public boolean isRefreshToken(String token) {
+        try {
+            Object type = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("type");
+            return "refresh".equals(type);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

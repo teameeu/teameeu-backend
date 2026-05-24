@@ -5,6 +5,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,5 +27,10 @@ public class RefreshTokenService {
     public void delete(Long userId) {
         String key = REFRESH_TOKEN_KEY_PREFIX + userId;
         redisTemplate.delete(key);
+    }
+
+    public Optional<String> findByUserId(Long userId) {
+        String key = REFRESH_TOKEN_KEY_PREFIX + userId;
+        return Optional.ofNullable(redisTemplate.opsForValue().get(key));
     }
 }
