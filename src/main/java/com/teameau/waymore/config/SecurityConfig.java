@@ -28,6 +28,8 @@ public class SecurityConfig {
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
+    @Value("${app.cors.allowed-origin-patterns:}")
+    private String allowedOriginPatterns;
 
     // http 보안 정책
     @Bean
@@ -69,8 +71,17 @@ public class SecurityConfig {
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
                 .toList();
+        List<String> parsedAllowedOriginPatterns = Arrays.stream(allowedOriginPatterns.split(","))
+                .map(String::trim)
+                .filter(originPattern -> !originPattern.isEmpty())
+                .toList();
 
-        configuration.setAllowedOrigins(parsedAllowedOrigins);
+        if (!parsedAllowedOrigins.isEmpty()) {
+            configuration.setAllowedOrigins(parsedAllowedOrigins);
+        }
+        if (!parsedAllowedOriginPatterns.isEmpty()) {
+            configuration.setAllowedOriginPatterns(parsedAllowedOriginPatterns);
+        }
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
         configuration.setExposedHeaders(List.of("Set-Cookie"));

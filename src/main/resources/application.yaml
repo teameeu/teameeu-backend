@@ -33,5 +33,5 @@ auth:
       same-site: ${REFRESH_TOKEN_COOKIE_SAME_SITE}
 app:
   cors:
-    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000, http://127.0.0.1:3000, http://0.0.0.0:3000}
-    allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000, http://127.0.0.1:3000, http://0.0.0.0:3000}
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:}
+    allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:*}
