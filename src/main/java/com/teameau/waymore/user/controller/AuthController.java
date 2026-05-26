@@ -1,5 +1,6 @@
 package com.teameau.waymore.user.controller;
 
+import com.teameau.waymore.common.CommonResponseDto;
 import com.teameau.waymore.user.dto.*;
 import com.teameau.waymore.user.service.AuthCookieProvider;
 import com.teameau.waymore.user.service.AuthService;
@@ -17,10 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 @Tag(name = "인증", description = "로그인/로그아웃 및 회원가입 API")
 @RestController
 @RequestMapping("/api/auth")
@@ -75,6 +74,18 @@ public class AuthController {
                 .ok()
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .body(result.response());
+    }
+
+    // 사용자 조회
+    @GetMapping("/user")
+    @Operation(
+            summary = "사용자 정보 조회",
+            description = "사용자 정보 표기용",
+            security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    public CommonResponseDto<UserResponse> getUser(@AuthenticationPrincipal Long userId) {
+        UserResponse response = authService.getUser(userId);
+        return CommonResponseDto.success(response);
     }
 
     // 로그아웃

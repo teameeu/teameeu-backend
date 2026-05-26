@@ -123,6 +123,12 @@ public class AuthService {
         );
     }
 
+    public UserResponse getUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        return UserResponse.from(user);
+    }
+
     @Transactional
     public void logout(Long userId) {
         refreshTokenService.delete(userId);
