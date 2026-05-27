@@ -9,6 +9,9 @@ import com.teameau.waymore.chat.repository.ChatMessageRepository;
 import com.teameau.waymore.chat.repository.ChatSessionRepository;
 import com.teameau.waymore.common.exception.BusinessException;
 import com.teameau.waymore.common.exception.ErrorCode;
+import com.teameau.waymore.user.domain.User;
+import com.teameau.waymore.chat.dto.ChatSessionCreateResponse;
+import com.teameau.waymore.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ import java.util.List;
 public class ChatQueryService {
     private final ChatSessionRepository chatSessionRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final UserRepository userRepository;
 
 
     // TODO: javadoc 상세 작성
@@ -53,6 +57,7 @@ public class ChatQueryService {
 
         return ChatRoomDetailResponse.of(chatSession, messages);
     }
+
 
     /**
      * 사용자 검증

@@ -2,17 +2,17 @@ package com.teameau.waymore.chat.controller;
 
 import com.teameau.waymore.chat.dto.ChatRoomDetailResponse;
 import com.teameau.waymore.chat.dto.ChatRoomListResponse;
+import com.teameau.waymore.chat.service.ChatCommandService;
 import com.teameau.waymore.chat.service.ChatQueryService;
 import com.teameau.waymore.common.CommonResponseDto;
+import com.teameau.waymore.chat.dto.ChatSessionCreateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "채팅", description = "AI 채팅 조회 API")
 @RestController
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ChatController {
     private final ChatQueryService chatQueryService;
+    private final ChatCommandService chatCommandService;
 
     /**
      * 채팅방 목록 조회
@@ -43,4 +44,19 @@ public class ChatController {
     ) {
         return CommonResponseDto.success(chatQueryService.getChatRoom(userId, sessionId));
     }
+
+    /**
+     * 채팅방 생성
+     * @param userId
+     * @return
+     */
+
+    @PostMapping("/sessions")
+    @Operation(summary = "채팅방 생성", security = { @SecurityRequirement(name = "bearerAuth")})
+    public CommonResponseDto<ChatSessionCreateResponse> createChatSession(
+            @AuthenticationPrincipal Long userId
+    ) {
+        return CommonResponseDto.success(chatCommandService.createChatSession(userId));
+    }
+
 }
