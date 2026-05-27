@@ -50,6 +50,10 @@ public class ChatSession {
         this.lastMessageAt = sentAt;
     }
 
+    public void updateTitle(String title) {
+        this.title = title;
+    }
+
     /**
      * 생성 시각 자동 설정
      */
