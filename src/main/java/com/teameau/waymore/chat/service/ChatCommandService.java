@@ -33,6 +33,8 @@ public class ChatCommandService {
     private final AiChatSseClient aiChatSseClient;
     private final SimpMessagingTemplate messagingTemplate;
 
+    private static final String DEFAULT_PRECREATED_TITLE = "새 채팅";
+
     // TODO: javadoc 작성하기
 
 
@@ -45,6 +47,10 @@ public class ChatCommandService {
 
         ChatSession chatSession = resolveChatRoom(user, request.sessionId(), request.content());
         LocalDateTime now = LocalDateTime.now();
+
+        if (DEFAULT_PRECREATED_TITLE.equals(chatSession.getTitle())) {
+            chatSession.updateTitle(makeTitle(request.content()));
+        }
 
         ChatMessage userMessage = chatMessageRepository.save(
                 ChatMessage.builder()
@@ -100,7 +106,7 @@ public class ChatCommandService {
 
 
     /**
-     * 기존 채티방 조회 및 신규 채팅방 생성
+     * 기존 채팅방 조회 및 신규 채팅방 생성
      * @param user
      * @param sessionId
      * @param content
@@ -121,6 +127,27 @@ public class ChatCommandService {
         }
 
         return chatRoom;
+    }
+
+
+    /**
+     * 채팅방 생성
+     * @param userId
+     * @return
+     */
+    @Transactional
+    public ChatSessionCreateResponse createChatSession(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        ChatSession chatSession = chatSessionRepository.save(
+                ChatSession.builder()
+                        .user(user)
+                        .title("새 채팅")
+                        .build()
+        );
+
+        return ChatSessionCreateResponse.from(chatSession);
     }
 
     /**
@@ -197,6 +224,7 @@ public class ChatCommandService {
     private void publish(Long sessionId, ChatSocketEventResponse payload) {
         messagingTemplate.convertAndSend("/sub/chats/" + sessionId, payload);
     }
+
 
 
 
