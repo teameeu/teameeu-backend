@@ -1,6 +1,5 @@
 package com.teameau.waymore.careernet.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.teameau.waymore.careernet.dto.CareerNetReportRequest;
 import com.teameau.waymore.careernet.dto.CareerNetTestResponse;
 import com.teameau.waymore.careernet.service.CareerNetService;
@@ -13,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "커리어넷 진로검사", description = "커리어넷 진로심리검사 연동 API")
 @RestController
@@ -29,13 +29,13 @@ public class CareerNetController {
 
     @GetMapping("/tests/{qno}/questions")
     @Operation(summary = "진로검사 문항 조회", security = { @SecurityRequirement(name = "bearerAuth") })
-    public CommonResponseDto<JsonNode> getQuestionsByPath(@PathVariable String qno) {
+    public CommonResponseDto<Map<String, Object>> getQuestionsByPath(@PathVariable String qno) {
         return CommonResponseDto.success(careerNetService.getQuestions(qno));
     }
 
     @PostMapping("/reports")
     @Operation(summary = "검사결과조회", security = { @SecurityRequirement(name = "bearerAuth") })
-    public CommonResponseDto<JsonNode> createReport(@Valid @RequestBody CareerNetReportRequest request) {
+    public CommonResponseDto<Map<String, Object>> createReport(@Valid @RequestBody CareerNetReportRequest request) {
         return CommonResponseDto.success(careerNetService.createReport(request));
     }
 }

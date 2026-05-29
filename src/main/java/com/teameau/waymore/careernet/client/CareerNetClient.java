@@ -1,6 +1,6 @@
 package com.teameau.waymore.careernet.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.teameau.waymore.careernet.exception.CareerNetApiException;
@@ -29,7 +29,7 @@ public class CareerNetClient {
         this.apiKey = apiKey;
     }
 
-    public JsonNode getQuestions(String qno) {
+    public Map<String, Object> getQuestions(String qno) {
         validateApiKey();
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -46,7 +46,7 @@ public class CareerNetClient {
                 .block();
     }
 
-    public JsonNode createReport(Map<String, Object> payload) {
+    public Map<String, Object> createReport(Map<String, Object> payload) {
         validateApiKey();
         return webClient.post()
                 .uri("/inspct/openapi/test/report")
@@ -72,9 +72,9 @@ public class CareerNetClient {
         }
     }
 
-    private JsonNode parseJson(String body) {
+    private Map<String, Object> parseJson(String body) {
         try {
-            return objectMapper.readTree(body);
+            return objectMapper.readValue(body, new TypeReference<>() {});
         } catch (Exception exception) {
             throw new CareerNetApiException("커리어넷 응답을 JSON으로 해석할 수 없습니다: " + abbreviate(body));
         }

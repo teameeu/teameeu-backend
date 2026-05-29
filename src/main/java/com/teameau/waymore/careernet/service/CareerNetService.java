@@ -1,6 +1,5 @@
 package com.teameau.waymore.careernet.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.teameau.waymore.careernet.client.CareerNetClient;
 import com.teameau.waymore.careernet.dto.CareerNetReportRequest;
 import com.teameau.waymore.careernet.dto.CareerNetTestResponse;
@@ -24,17 +23,17 @@ public class CareerNetService {
         return CareerNetTestCatalog.getTests();
     }
 
-    public JsonNode getQuestions(String qno) {
+    public Map<String, Object> getQuestions(String qno) {
         if (!StringUtils.hasText(qno)) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST);
         }
 
-        JsonNode response = careerNetClient.getQuestions(qno);
+        Map<String, Object> response = careerNetClient.getQuestions(qno);
         ensureV1Success(response);
         return response;
     }
 
-    public JsonNode createReport(CareerNetReportRequest request) {
+    public Map<String, Object> createReport(CareerNetReportRequest request) {
         if (!StringUtils.hasText(request.answers())) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST);
         }
@@ -48,14 +47,16 @@ public class CareerNetService {
         payload.put("startDtm", request.startDtm());
         payload.put("answers", request.answers());
 
-        JsonNode response = careerNetClient.createReport(payload);
+        Map<String, Object> response = careerNetClient.createReport(payload);
         ensureV1Success(response);
         return response;
     }
 
-    private void ensureV1Success(JsonNode response) {
-        if (response == null || !"Y".equals(response.path("SUCC_YN").asText())) {
-            String reason = response == null ? "커리어넷 응답이 비어 있습니다." : response.path("ERROR_REASON").asText("커리어넷 요청이 실패했습니다.");
+    private void ensureV1Success(Map<String, Object> response) {
+        if (response == null || !"Y".equals(String.valueOf(response.get("SUCC_YN")))) {
+            String reason = response == null
+                    ? "커리어넷 응답이 비어 있습니다."
+                    : String.valueOf(response.getOrDefault("ERROR_REASON", "커리어넷 요청이 실패했습니다."));
             throw new CareerNetApiException(reason);
         }
     }
