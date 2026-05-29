@@ -24,6 +24,10 @@ public class CareerNetService {
     }
 
     public JsonNode getQuestions(String qno) {
+        if (!StringUtils.hasText(qno)) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+
         JsonNode response = careerNetClient.getQuestions(qno);
         ensureV1Success(response);
         return response;

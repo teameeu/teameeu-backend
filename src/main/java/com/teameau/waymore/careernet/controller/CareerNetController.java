@@ -27,12 +27,6 @@ public class CareerNetController {
         return CommonResponseDto.success(careerNetService.getTests());
     }
 
-    @GetMapping("/tests/questions")
-    @Operation(summary = "진로검사 문항 조회", security = { @SecurityRequirement(name = "bearerAuth") })
-    public CommonResponseDto<JsonNode> getQuestions(@RequestParam String qno) {
-        return CommonResponseDto.success(careerNetService.getQuestions(qno));
-    }
-
     @GetMapping("/tests/{qno}/questions")
     @Operation(summary = "진로검사 문항 조회", security = { @SecurityRequirement(name = "bearerAuth") })
     public CommonResponseDto<JsonNode> getQuestionsByPath(@PathVariable String qno) {

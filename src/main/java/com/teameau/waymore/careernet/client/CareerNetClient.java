@@ -42,14 +42,14 @@ public class CareerNetClient {
         return webClient.post()
                 .uri("/inspct/openapi/test/report")
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(withApiKey(payload, "apikey"))
+                .bodyValue(withApiKey(payload))
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .block();
     }
 
-    private Map<String, Object> withApiKey(Map<String, Object> payload, String keyName) {
-        payload.put(keyName, apiKey);
+    private Map<String, Object> withApiKey(Map<String, Object> payload) {
+        payload.put("apikey", apiKey);
         return payload;
     }
 
