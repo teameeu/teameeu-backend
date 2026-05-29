@@ -1,9 +1,12 @@
 package com.teameau.waymore.careernet.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.teameau.waymore.common.exception.BusinessException;
+import com.teameau.waymore.common.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
@@ -15,13 +18,14 @@ public class CareerNetClient {
 
     public CareerNetClient(
             @Value("${CAREERNET_BASE_URL:https://www.career.go.kr}") String baseUrl,
-            @Value("${CAREERNET_API_KEY}") String apiKey
+            @Value("${CAREERNET_API_KEY:}") String apiKey
     ) {
         this.webClient = WebClient.builder().baseUrl(baseUrl).build();
         this.apiKey = apiKey;
     }
 
     public JsonNode getQuestions(String qno) {
+        validateApiKey();
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/inspct/openapi/test/questions")
@@ -34,6 +38,7 @@ public class CareerNetClient {
     }
 
     public JsonNode createReport(Map<String, Object> payload) {
+        validateApiKey();
         return webClient.post()
                 .uri("/inspct/openapi/test/report")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -46,5 +51,11 @@ public class CareerNetClient {
     private Map<String, Object> withApiKey(Map<String, Object> payload, String keyName) {
         payload.put(keyName, apiKey);
         return payload;
+    }
+
+    private void validateApiKey() {
+        if (!StringUtils.hasText(apiKey)) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
     }
 }
