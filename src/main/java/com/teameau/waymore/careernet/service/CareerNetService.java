@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.teameau.waymore.careernet.client.CareerNetClient;
 import com.teameau.waymore.careernet.dto.CareerNetReportRequest;
 import com.teameau.waymore.careernet.dto.CareerNetTestResponse;
+import com.teameau.waymore.careernet.exception.CareerNetApiException;
 import com.teameau.waymore.common.exception.BusinessException;
 import com.teameau.waymore.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,8 @@ public class CareerNetService {
 
     private void ensureV1Success(JsonNode response) {
         if (response == null || !"Y".equals(response.path("SUCC_YN").asText())) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+            String reason = response == null ? "커리어넷 응답이 비어 있습니다." : response.path("ERROR_REASON").asText("커리어넷 요청이 실패했습니다.");
+            throw new CareerNetApiException(reason);
         }
     }
 }

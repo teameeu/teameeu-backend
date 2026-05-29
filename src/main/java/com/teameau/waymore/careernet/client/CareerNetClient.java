@@ -1,26 +1,31 @@
 package com.teameau.waymore.careernet.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.teameau.waymore.common.exception.BusinessException;
-import com.teameau.waymore.common.exception.ErrorCode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.teameau.waymore.careernet.exception.CareerNetApiException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
 @Component
 public class CareerNetClient {
     private final WebClient webClient;
+    private final ObjectMapper objectMapper;
     private final String apiKey;
 
     public CareerNetClient(
+            ObjectMapper objectMapper,
             @Value("${CAREERNET_BASE_URL:https://www.career.go.kr}") String baseUrl,
             @Value("${CAREERNET_API_KEY:}") String apiKey
     ) {
         this.webClient = WebClient.builder().baseUrl(baseUrl).build();
+        this.objectMapper = objectMapper;
         this.apiKey = apiKey;
     }
 
@@ -33,7 +38,11 @@ public class CareerNetClient {
                         .queryParam("q", qno)
                         .build())
                 .retrieve()
-                .bodyToMono(JsonNode.class)
+                .onStatus(HttpStatusCode::isError, response -> response.bodyToMono(String.class)
+                        .defaultIfEmpty("")
+                        .flatMap(body -> Mono.error(new CareerNetApiException("커리어넷 문항 조회 요청 실패: " + response.statusCode() + " " + abbreviate(body)))))
+                .bodyToMono(String.class)
+                .map(this::parseJson)
                 .block();
     }
 
@@ -44,7 +53,11 @@ public class CareerNetClient {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(withApiKey(payload))
                 .retrieve()
-                .bodyToMono(JsonNode.class)
+                .onStatus(HttpStatusCode::isError, response -> response.bodyToMono(String.class)
+                        .defaultIfEmpty("")
+                        .flatMap(body -> Mono.error(new CareerNetApiException("커리어넷 결과 요청 실패: " + response.statusCode() + " " + abbreviate(body)))))
+                .bodyToMono(String.class)
+                .map(this::parseJson)
                 .block();
     }
 
@@ -55,7 +68,23 @@ public class CareerNetClient {
 
     private void validateApiKey() {
         if (!StringUtils.hasText(apiKey)) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+            throw new CareerNetApiException("CAREERNET_API_KEY가 설정되지 않았습니다.");
         }
+    }
+
+    private JsonNode parseJson(String body) {
+        try {
+            return objectMapper.readTree(body);
+        } catch (Exception exception) {
+            throw new CareerNetApiException("커리어넷 응답을 JSON으로 해석할 수 없습니다: " + abbreviate(body));
+        }
+    }
+
+    private String abbreviate(String body) {
+        if (!StringUtils.hasText(body)) {
+            return "";
+        }
+        String normalized = body.replaceAll("\\s+", " ").trim();
+        return normalized.length() > 200 ? normalized.substring(0, 200) + "..." : normalized;
     }
 }
