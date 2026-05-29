@@ -2,6 +2,7 @@ package com.teameau.waymore.careernet.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.teameau.waymore.careernet.exception.CareerNetApiException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
@@ -20,12 +21,11 @@ public class CareerNetClient {
     private final String apiKey;
 
     public CareerNetClient(
-            ObjectMapper objectMapper,
             @Value("${CAREERNET_BASE_URL:https://www.career.go.kr}") String baseUrl,
             @Value("${CAREERNET_API_KEY:}") String apiKey
     ) {
         this.webClient = WebClient.builder().baseUrl(baseUrl).build();
-        this.objectMapper = objectMapper;
+        this.objectMapper = JsonMapper.builder().build();
         this.apiKey = apiKey;
     }
 
